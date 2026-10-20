@@ -3,6 +3,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from dotenv import load_dotenv
@@ -185,6 +186,20 @@ def direct_mac_paste(text: str):
     Quartz.CGEventPost(Quartz.kCGAnnotatedSessionEventTap, evt_up)
 
 
+def speak(text: str):
+    subprocess.Popen(["say", "-r", "180", text])
+
+
+def take_screenshot() -> bytes:
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        path = f.name
+    subprocess.run(["screencapture", "-x", path], check=True)
+    with open(path, "rb") as f:
+        data = f.read()
+    os.unlink(path)
+    return data
+
+
 def extract_transcription(response) -> str:
     try:
         if response.text:
@@ -217,6 +232,7 @@ class WisprFlowEngine:
         self.audio_frames = []
         self.stream = None
         self.lock = threading.Lock()
+        self.exam_mode = False
 
     def set_window(self, win):
         self.window = win
@@ -283,6 +299,7 @@ class WisprFlowEngine:
             sf.write(wav_io, audio_data, SAMPLE_RATE, format="WAV", subtype="PCM_16")
             wav_bytes = wav_io.getvalue()
 
+            # First transcribe to detect mode-toggle commands
             t_api_start = time.time()
             response = client.models.generate_content(
                 model=MODEL_NAME,
@@ -299,8 +316,46 @@ class WisprFlowEngine:
                 print(f"\r⚠️ Empty result ({total_time:.2f}s)       ", flush=True)
                 return
 
-            print(f"\r✅ Pasted ({total_time:.2f}s total | API: {t_api:.2f}s): \"{result_text}\"", flush=True)
-            direct_mac_paste(result_text)
+            # Check for exam mode toggle
+            lower = result_text.strip().lower().rstrip(".")
+            if lower in ("exam mode on", "turn exam mode on", "enable exam mode"):
+                self.exam_mode = True
+                print("\r🎓 [EXAM MODE ON]                         ", flush=True)
+                speak("Exam mode activated")
+                return
+            if lower in ("exam mode off", "turn exam mode off", "disable exam mode"):
+                self.exam_mode = False
+                print("\r📝 [EXAM MODE OFF]                        ", flush=True)
+                speak("Exam mode deactivated")
+                return
+
+            if self.exam_mode:
+                # Take screenshot and ask Gemini to identify answers
+                image_bytes = take_screenshot()
+                exam_response = client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=[
+                        types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
+                        types.Part.from_bytes(data=wav_bytes, mime_type="audio/wav"),
+                        (
+                            "You are an exam assistant. Look at the screenshot carefully. "
+                            "Identify the correct answers for any visible multiple-choice questions. "
+                            "Reply ONLY in this exact spoken format, one sentence per question: "
+                            "'Question N, option X.' or 'Question N, options X and Y.' "
+                            "No explanations, no other text. Just the answer keys in order."
+                        ),
+                    ],
+                )
+                answer_text = extract_transcription(exam_response)
+                if answer_text:
+                    print(f"\r🎓 Exam answer: {answer_text}", flush=True)
+                    speak(answer_text)
+                else:
+                    print("\r⚠️ No answers found in screenshot.    ", flush=True)
+                    speak("Sorry, I could not find any answers.")
+            else:
+                print(f"\r✅ Pasted ({total_time:.2f}s total | API: {t_api:.2f}s): \"{result_text}\"", flush=True)
+                direct_mac_paste(result_text)
 
         except Exception as e:
             print(f"\r❌ Error: {e}                           ", flush=True)
