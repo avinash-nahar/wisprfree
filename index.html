@@ -1,0 +1,255 @@
+<title>WisprFree</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Inter:wght@400;500&display=swap">
+
+<style>
+  /* Layout: full-bleed dark page, stacked sections, centered column */
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: rgba(255,255,255,0.07);
+    --fg: #e8e8f0;
+    --muted: #7a7a96;
+    --accent: #6ee7b7;
+    --accent2: #818cf8;
+    --danger: #f87171;
+    --font-display: 'Syne', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--fg); }
+  body {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    line-height: 1.6;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0;
+    overflow-x: hidden;
+  }
+
+  #hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    padding-block: 6rem 4rem;
+    gap: 2rem;
+  }
+  #particle-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  .hero-orb { position: relative; width: 120px; height: 120px; z-index: 1; }
+  .orb-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid var(--accent); animation: orbPulse 2.8s ease-in-out infinite; }
+  .orb-ring:nth-child(2) { animation-delay: 0.7s; transform: scale(1.3); opacity: 0.5; }
+  .orb-ring:nth-child(3) { animation-delay: 1.4s; transform: scale(1.7); opacity: 0.25; }
+  .orb-core { position: absolute; inset: 12px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #6ee7b7, #065f46 60%, #020d09); box-shadow: 0 0 40px rgba(110,231,183,0.4), inset 0 0 20px rgba(110,231,183,0.2); animation: orbGlow 2.8s ease-in-out infinite alternate; }
+  @keyframes orbPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.08); } }
+  @keyframes orbGlow { from { box-shadow: 0 0 30px rgba(110,231,183,0.3); } to { box-shadow: 0 0 60px rgba(110,231,183,0.7), 0 0 100px rgba(110,231,183,0.2); } }
+
+  .hero-eyebrow { font-family: var(--font-display); font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); z-index: 1; }
+  h1 { font-family: var(--font-display); font-size: clamp(2.6rem, 8vw, 5.5rem); font-weight: 800; line-height: 1; letter-spacing: -0.03em; z-index: 1; text-wrap: balance; }
+  h1 .strike { position: relative; color: var(--muted); }
+  h1 .strike::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 3px; background: var(--danger); transform: rotate(-2deg); animation: strikeIn 0.5s 1.2s both; }
+  @keyframes strikeIn { from { transform: rotate(-2deg) scaleX(0); } to { transform: rotate(-2deg) scaleX(1); } }
+
+  .hero-sub { max-width: 42ch; color: var(--muted); font-size: 1.05rem; z-index: 1; text-wrap: balance; }
+  .hero-sub strong { color: var(--fg); }
+
+  .badge-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; z-index: 1; }
+  .badge { font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.3rem 0.75rem; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); background: var(--surface); }
+  .badge.green { border-color: rgba(110,231,183,0.4); color: var(--accent); background: rgba(110,231,183,0.06); }
+  .badge.indigo { border-color: rgba(129,140,248,0.4); color: var(--accent2); background: rgba(129,140,248,0.06); }
+
+  .scroll-hint { position: absolute; bottom: 2.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; animation: fadeInUp 1s 2s both; z-index: 1; }
+  .scroll-hint .arrow { width: 1px; height: 36px; background: linear-gradient(to bottom, transparent, var(--accent)); animation: scrollArrow 1.5s ease-in-out infinite; }
+  @keyframes scrollArrow { 0%, 100% { transform: scaleY(1); opacity: 1; } 50% { transform: scaleY(0.5); opacity: 0.4; } }
+
+  .section { max-width: 780px; margin: 0 auto; padding-block: 5rem; }
+  .section + .section { border-top: 1px solid var(--border); }
+  .section-label { font-family: var(--font-display); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.25rem; }
+  h2 { font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; margin-bottom: 1rem; }
+  p { color: var(--muted); max-width: 60ch; }
+  p + p { margin-top: 0.75rem; }
+
+  .steps { display: flex; flex-direction: column; gap: 0; margin-top: 2.5rem; position: relative; }
+  .steps::before { content: ''; position: absolute; left: 19px; top: 0; bottom: 0; width: 1px; background: linear-gradient(to bottom, var(--accent), var(--accent2), transparent); opacity: 0.3; }
+  .step { display: flex; gap: 1.25rem; padding-block: 1.5rem; opacity: 0; transform: translateY(16px); transition: opacity 0.5s, transform 0.5s; }
+  .step.visible { opacity: 1; transform: none; }
+  .step-num { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; color: var(--accent); position: relative; z-index: 1; }
+  .step-body h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: var(--fg); margin-bottom: 0.3rem; }
+  .step-body p { font-size: 0.9rem; max-width: none; }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 2.5rem; }
+  .feature-card { background: var(--bg); padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; transition: background 0.2s; }
+  .feature-card:hover { background: var(--surface); }
+  .feature-icon { font-size: 1.3rem; line-height: 1; }
+  .feature-card h3 { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: var(--fg); }
+  .feature-card p { font-size: 0.82rem; line-height: 1.5; max-width: none; }
+
+  .compare-wrap { overflow-x: auto; margin-top: 2.5rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; min-width: 400px; }
+  th { font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); color: var(--muted); }
+  th:not(:first-child) { text-align: center; }
+  td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: middle; }
+  td:not(:first-child) { text-align: center; font-size: 1rem; }
+  td:first-child { color: var(--fg); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .yes { color: var(--accent); }
+  .no  { color: var(--danger); opacity: 0.7; }
+  .col-highlight th:nth-child(3), .col-highlight td:nth-child(3) { background: rgba(110,231,183,0.04); }
+
+  .install-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 2.5rem; }
+  .install-bar { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); display: flex; gap: 6px; align-items: center; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.r { background: #f87171; } .dot.y { background: #fbbf24; } .dot.g { background: #6ee7b7; }
+  .install-steps { padding: 1.25rem 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .cmd-line { display: flex; align-items: flex-start; gap: 0.75rem; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.82rem; }
+  .prompt { color: var(--accent); flex-shrink: 0; user-select: none; }
+  .cmd { color: var(--fg); white-space: pre-wrap; word-break: break-all; }
+  .cmd .comment { color: var(--muted); }
+
+  footer { max-width: 780px; margin: 0 auto; padding-block: 3rem; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--muted); }
+  footer strong { color: var(--fg); font-family: var(--font-display); font-weight: 700; }
+  footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+  footer a:hover { color: var(--accent); }
+
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+</style>
+
+<section id="hero">
+  <canvas id="particle-canvas"></canvas>
+  <p class="hero-eyebrow">Open Source · Free · macOS</p>
+  <div class="hero-orb">
+    <div class="orb-ring"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-core"></div>
+  </div>
+  <h1>Wispr<span class="strike">Flow</span>Free</h1>
+  <p class="hero-sub">
+    Hold <strong>Right Shift</strong>. Speak. Release.<br>
+    Your words appear — instantly pasted, anywhere on your Mac.
+    <strong>No subscription. No cloud lock-in. Just Gemini.</strong>
+  </p>
+  <div class="badge-row">
+    <span class="badge green">Free tier</span>
+    <span class="badge green">Gemini Flash</span>
+    <span class="badge indigo">Push-to-talk</span>
+    <span class="badge indigo">Floating orb HUD</span>
+    <span class="badge">macOS only</span>
+    <span class="badge">Python 3.11+</span>
+  </div>
+  <div class="scroll-hint"><span>Scroll</span><div class="arrow"></div></div>
+</section>
+
+<div class="section">
+  <p class="section-label">How it works</p>
+  <h2>Three seconds from thought to text</h2>
+  <p>No server, no middleman app. The audio goes straight from your mic to Gemini and back.</p>
+  <div class="steps" id="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-body"><h3>Hold Right Shift</h3><p>The floating Siri-style orb pulses to life at the bottom of your screen. A hardware-level keyboard listener picks up the key — zero UI lag.</p></div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body"><h3>Speak</h3><p>Audio streams into a 16 kHz mono buffer. The orb's animation speed reacts to your mic volume in real time.</p></div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body"><h3>Release — transcription begins</h3><p>The WAV chunk ships to <code>gemini-3.5-transcribe</code>. A green pulse on the orb shows processing state.</p></div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body"><h3>Text appears in your app</h3><p>Result goes into your clipboard via <code>pbcopy</code>, then a hardware Cmd+V event pastes it — works in any app, even those that block normal paste.</p></div></div>
+  </div>
+</div>
+
+<div class="section">
+  <p class="section-label">Features</p>
+  <h2>Everything you actually need</h2>
+  <p>Built small on purpose. The best code is no code.</p>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="feature-icon">🎙️</div><h3>Push-to-talk</h3><p>Right Shift triggers recording. No UI to open, no mode to toggle.</p></div>
+    <div class="feature-card"><div class="feature-icon">🫧</div><h3>Lottie orb HUD</h3><p>Transparent floating window that disappears when idle. Alpha-stripped Siri animation, no black box.</p></div>
+    <div class="feature-card"><div class="feature-icon">⚡</div><h3>Hardware paste</h3><p>Uses Quartz CGEvent to fire a real Cmd+V — not a clipboard race condition.</p></div>
+    <div class="feature-card"><div class="feature-icon">💸</div><h3>Gemini free tier</h3><p>Runs on Google's free API quota. No credit card required to start.</p></div>
+    <div class="feature-card"><div class="feature-icon">🔒</div><h3>Local-first</h3><p>Audio is sent directly to Gemini. Nothing touches a third-party server.</p></div>
+    <div class="feature-card"><div class="feature-icon">🎓</div><h3>Exam Mode</h3><p>Say "exam mode on" — screenshot + Gemini Vision reads answers aloud. Completely stealth, no HUD.</p></div>
+  </div>
+</div>
+
+<div class="section">
+  <p class="section-label">Comparison</p>
+  <h2>Why build it?</h2>
+  <p>Wispr Flow is excellent. But $15/month for dictation felt wrong when the free API tier exists.</p>
+  <div class="compare-wrap">
+    <table class="col-highlight">
+      <thead><tr><th>Feature</th><th>Wispr Flow</th><th>WisprFree</th></tr></thead>
+      <tbody>
+        <tr><td>Push-to-talk anywhere</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Floating HUD</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Auto-paste result</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+        <tr><td>Exam / screenshot mode</td><td class="no">✗</td><td class="yes">✓</td></tr>
+        <tr><td>Price</td><td class="no">$15 / mo</td><td class="yes">$0</td></tr>
+        <tr><td>Open source</td><td class="no">✗</td><td class="yes">✓</td></tr>
+        <tr><td>AI commands / rewrites</td><td class="yes">✓</td><td class="no">✗</td></tr>
+        <tr><td>macOS app bundle</td><td class="yes">✓</td><td class="no">Run from terminal</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <p class="section-label">Get started</p>
+  <h2>Running in under two minutes</h2>
+  <p>Requires Python 3.11+, a free <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a> key, and macOS accessibility permissions.</p>
+  <div class="install-block">
+    <div class="install-bar"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+    <div class="install-steps">
+      <div class="cmd-line"><span class="prompt">$</span><span class="cmd">git clone https://github.com/avinash-nahar/wisprfree && cd wisprfree</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><span class="cmd">pip install -r requirements.txt</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><span class="cmd">echo "GEMINI_API_KEY=your_key_here" > .env</span></div>
+      <div class="cmd-line"><span class="prompt">$</span><span class="cmd">python wispr_avi_hud.py</span></div>
+      <div class="cmd-line"><span class="prompt">&gt;</span><span class="cmd" style="color:var(--accent)">🚀 Hold [Right Shift ⇧] to speak, release to paste.</span></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div><strong>WisprFree</strong> — a lazy port of a $15/month habit</div>
+  <div style="display:flex;gap:1.25rem;">
+    <a href="https://github.com/avinash-nahar/wisprfree" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://aistudio.google.com" target="_blank" rel="noopener">Google AI Studio</a>
+  </div>
+</footer>
+
+<script>
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; }
+
+  function mkParticle() {
+    return { x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.4+0.3, vx: (Math.random()-.5)*.25, vy: (Math.random()-.5)*.25, alpha: Math.random()*.4+.05, hue: Math.random()>.6?160:245 };
+  }
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    for (const p of particles) {
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${p.hue},80%,70%,${p.alpha})`; ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize(); particles = Array.from({length:60}, mkParticle); draw();
+  window.addEventListener('resize', resize);
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e,i) => { if(e.isIntersecting){ setTimeout(()=>e.target.classList.add('visible'),i*120); io.unobserve(e.target); } });
+  }, {threshold:0.2});
+  document.querySelectorAll('.step').forEach(s=>io.observe(s));
+</script>
