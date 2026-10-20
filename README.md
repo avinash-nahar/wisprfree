@@ -92,6 +92,14 @@ Say **"exam mode off"** to return to normal dictation.
 | Open source | ✗ | ✓ |
 | AI rewrites / commands | ✓ | ✗ |
 
+## Contribution Graph
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/avinash-nahar/wisprfree/output/github-snake-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/avinash-nahar/wisprfree/output/github-snake.svg">
+  <img alt="github contribution grid snake animation" src="https://raw.githubusercontent.com/avinash-nahar/wisprfree/output/github-snake.svg">
+</picture>
+
 ## License
 
 MIT
