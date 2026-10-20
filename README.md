@@ -1,0 +1,58 @@
+# WisprFree
+
+> Free, open-source macOS voice-to-paste — because $15/month for dictation felt wrong when the free API tier exists.
+
+Hold **Right Shift**, speak, release. Your words are transcribed by Gemini and instantly pasted into whatever app is active.
+
+**[Interactive README →](https://claude.ai/artifact/NAsxsvfFqg64aU5yD2c7xp)**
+
+---
+
+## How it works
+
+1. **Hold Right Shift** — a Siri-style floating orb appears at the bottom of your screen
+2. **Speak** — audio streams into a 16 kHz buffer; the orb reacts to your volume
+3. **Release** — the WAV chunk is sent to `gemini-3.5-transcribe`
+4. **Text appears** — result is pasted via a hardware-level Quartz Cmd+V event, works in any app
+
+## Requirements
+
+- macOS (uses `Quartz`, `AppKit`, `pywebview`)
+- Python 3.11+
+- [Google AI Studio](https://aistudio.google.com) API key (free tier works)
+- Accessibility permissions for keyboard listener + paste
+
+## Setup
+
+```bash
+git clone https://github.com/avinashnahar/wisprfree
+cd wisprfree
+pip install -r requirements.txt
+echo "GEMINI_API_KEY=your_key_here" > .env
+python wispr_avi_hud.py
+```
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `wispr_avi_hud.py` | Main script |
+| `siri_avi.json` | Lottie animation source (alpha-stripped at runtime) |
+| `requirements.txt` | Python dependencies |
+
+`siri_avi_clean.json` and `hud_siri.html` are generated at runtime and gitignored.
+
+## vs Wispr Flow
+
+| | Wispr Flow | WisprFree |
+|---|---|---|
+| Push-to-talk anywhere | ✓ | ✓ |
+| Floating HUD | ✓ | ✓ |
+| Auto-paste | ✓ | ✓ |
+| Price | $15/mo | $0 |
+| Open source | ✗ | ✓ |
+| AI rewrites / commands | ✓ | ✗ |
+
+## License
+
+MIT

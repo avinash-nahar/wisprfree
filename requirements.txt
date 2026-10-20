@@ -1,0 +1,7 @@
+google-genai
+numpy
+sounddevice
+soundfile
+pynput
+pywebview
+python-dotenv
