@@ -252,7 +252,7 @@ class WisprFlowEngine:
             self.is_recording = True
             self.audio_frames = []
 
-        if self.window:
+        if self.window and not self.exam_mode:
             self.window.evaluate_js("window.hud.startListening();")
 
         print("\n🎙️ [Recording...] Speak now!", flush=True)
@@ -271,7 +271,7 @@ class WisprFlowEngine:
                 return
             self.is_recording = False
 
-        if self.window:
+        if self.window and not self.exam_mode:
             self.window.evaluate_js("window.hud.showProcessing();")
 
         if self.stream:
@@ -333,16 +333,16 @@ class WisprFlowEngine:
                 # Take screenshot and ask Gemini to identify answers
                 image_bytes = take_screenshot()
                 exam_response = client.models.generate_content(
-                    model="gemini-2.0-flash",
+                    model="gemini-3.8-flash",
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
                         types.Part.from_bytes(data=wav_bytes, mime_type="audio/wav"),
                         (
-                            "You are an exam assistant. Look at the screenshot carefully. "
-                            "Identify the correct answers for any visible multiple-choice questions. "
-                            "Reply ONLY in this exact spoken format, one sentence per question: "
-                            "'Question N, option X.' or 'Question N, options X and Y.' "
-                            "No explanations, no other text. Just the answer keys in order."
+                            "You are an exam assistant. Look at the screenshot and identify the correct answers "
+                            "for any visible multiple-choice questions. "
+                            "Reply in natural conversational English as if speaking to a friend, "
+                            "for example: 'Three is B, four is C, and seven is both A and D.' "
+                            "Keep it short. No explanations, just the answers."
                         ),
                     ],
                 )

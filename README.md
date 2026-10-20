@@ -69,6 +69,18 @@ python wispr_avi_hud.py
 
 `siri_avi_clean.json` and `hud_siri.html` are generated at runtime and gitignored.
 
+## Exam Mode
+
+Say **"exam mode on"** while recording to activate. Every subsequent Right Shift press silently captures your screen, sends it to Gemini Vision, and reads the answers aloud via macOS text-to-speech — no HUD, no animation, completely stealth.
+
+```
+"Three is B, four is C, and seven is both A and D."
+```
+
+Say **"exam mode off"** to return to normal dictation.
+
+> Requires **Screen Recording** permission: System Settings → Privacy & Security → Screen Recording → enable for Terminal.
+
 ## vs Wispr Flow
 
 | | Wispr Flow | WisprFree |
