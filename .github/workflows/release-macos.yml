@@ -1,0 +1,45 @@
+name: macOS Apple Silicon build
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version for the DMG (for example 0.1.0)
+        required: true
+        type: string
+  push:
+    tags: ["v*"]
+permissions:
+  contents: read
+jobs:
+  test-and-build:
+    runs-on: macos-14-xlarge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Verify runner architecture
+        run: |
+          uname -a
+          test "$(uname -m)" = "arm64"
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run unit tests
+        run: pytest -q
+      - name: Lint core and tests
+        run: ruff check wisprfree_core tests
+      - name: Build DMG
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then VERSION="$INPUT_VERSION"; fi
+          scripts/build_dmg.sh "$VERSION"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wisprfree-macos-arm64
+          path: |
+            dist/WisprFree-*-macos-arm64.dmg
+            dist/WisprFree-*-macos-arm64.dmg.sha256
+      # Public release publishing waits until signing/notarization are configured.
