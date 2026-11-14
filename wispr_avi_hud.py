@@ -316,14 +316,14 @@ class WisprFlowEngine:
                 print(f"\r⚠️ Empty result ({total_time:.2f}s)       ", flush=True)
                 return
 
-            # Check for exam mode toggle
-            lower = result_text.strip().lower().rstrip(".")
-            if lower in ("exam mode on", "turn exam mode on", "enable exam mode"):
+            # Check for exam mode toggle (substring match handles punctuation/word order variation)
+            lower = result_text.strip().lower()
+            if any(p in lower for p in ("exam mode on", "turn on exam", "enable exam", "activate exam")):
                 self.exam_mode = True
                 print("\r🎓 [EXAM MODE ON]                         ", flush=True)
                 speak("Exam mode activated")
                 return
-            if lower in ("exam mode off", "turn exam mode off", "disable exam mode"):
+            if any(p in lower for p in ("exam mode off", "turn off exam", "disable exam", "deactivate exam", "exit exam")):
                 self.exam_mode = False
                 print("\r📝 [EXAM MODE OFF]                        ", flush=True)
                 speak("Exam mode deactivated")
